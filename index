@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 Telemetry Analysis — Jay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero{padding:60px 24px 20px; max-width:1000px; margin:0 auto;}
+  .trace-panel{margin-top:44px; background:var(--panel); border:1px solid var(--panel-line); border-radius:10px; padding:20px 20px 14px; overflow:hidden;}
+  .trace-legend{display:flex; gap:22px; margin-bottom:6px; font-family:'JetBrains Mono', monospace; font-size:12px;}
+  .trace-legend .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px;}
+  .legend-speed{color:var(--p1);} .legend-speed .dot{background:var(--p1);}
+  .legend-throttle{color:var(--p2);} .legend-throttle .dot{background:var(--p2);}
+  .legend-brake{color:var(--p3);} .legend-brake .dot{background:var(--p3);}
+  svg.trace{width:100%; height:150px; display:block;}
+  .trace path{fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1400; stroke-dashoffset:1400; animation:draw 6s linear infinite;}
+  @keyframes draw{0%{stroke-dashoffset:1400;} 60%{stroke-dashoffset:0;} 100%{stroke-dashoffset:-1400;}}
+  @media (prefers-reduced-motion: reduce){.trace path{animation:none; stroke-dashoffset:0;}}
+  .stat-row{display:flex; gap:36px; margin-top:36px; flex-wrap:wrap;}
+  .stat-num{font-family:'JetBrains Mono', monospace; font-size:26px; color:var(--p1); font-weight:600;}
+  .stat-label{font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="index.html">f1<span>-telemetry</span></a>
+  <div class="nav-links">
+    <a class="nav-link active" href="index.html">Home</a>
+    <a class="nav-link" href="telemetry.html">Lap Telemetry</a>
+    <a class="nav-link" href="race.html">Full Race</a>
+    <a class="gh-link" href="https://github.com/jaysompura95/-F1-Telemetry-Analysis" target="_blank" rel="noopener">GitHub →</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">Data Science Project — Motorsport Telemetry</div>
+  <h1>Every corner leaves a <em>signature.</em></h1>
+  <p class="sub">A two-part F1 analytics project built on real Formula 1 timing and telemetry data via the FastF1 API — from single-lap sensor traces down to the second, up to full Grand Prix strategy across every lap.</p>
+
+  <div class="trace-panel">
+    <div class="trace-legend">
+      <span class="legend-speed"><span class="dot"></span>speed</span>
+      <span class="legend-throttle"><span class="dot"></span>throttle</span>
+      <span class="legend-brake"><span class="dot"></span>brake</span>
+    </div>
+    <svg class="trace" viewBox="0 0 700 150" preserveAspectRatio="none">
+      <path style="stroke:var(--p1)" d="M0,90 C40,40 70,30 100,60 C140,100 160,110 200,70 C230,40 260,20 300,50 C340,90 370,110 400,80 C440,40 470,25 500,55 C540,95 570,105 600,70 C630,45 660,35 700,55"/>
+      <path style="stroke:var(--p2)" d="M0,120 C40,120 60,40 100,35 C150,28 170,130 220,132 C260,133 280,45 320,38 C360,32 380,125 420,128 C460,130 480,42 520,36 C560,30 580,120 620,124 C650,126 670,50 700,40"/>
+      <path style="stroke:var(--p3)" d="M0,140 L90,140 L95,45 L130,45 L135,140 L280,140 L285,50 L315,50 L320,140 L470,140 L475,42 L505,42 L510,140 L700,140"/>
+    </svg>
+  </div>
+
+  <div class="stat-row">
+    <div><div class="stat-num">9</div><div class="stat-label">Analyses total</div></div>
+    <div><div class="stat-num">2</div><div class="stat-label">Interactive pages</div></div>
+    <div><div class="stat-num">1</div><div class="stat-label">Live dashboard</div></div>
+    <div><div class="stat-num">∞</div><div class="stat-label">Races supported</div></div>
+  </div>
+</header>
+
+<section>
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Two ways into the data</span>
+  </div>
+  <div class="card-grid">
+    <a class="card" href="telemetry.html">
+      <div class="card-tag">Single Lap</div>
+      <div class="card-title">Lap Telemetry</div>
+      <div class="card-desc">Speed traces, braking points, gear/throttle maps, micro-sector dominance — plus an animated lap comparison and live Streamlit dashboard.</div>
+      <div class="card-cta">Explore lap analytics →</div>
+    </a>
+    <a class="card" href="race.html">
+      <div class="card-tag">Whole Grand Prix</div>
+      <div class="card-title">Full Race Analytics</div>
+      <div class="card-desc">Position battles lap by lap, tire strategy gantt charts, race pace distribution, and the fastest lap leaderboard.</div>
+      <div class="card-cta">Explore race analytics →</div>
+    </a>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Built with</span>
+  </div>
+  <div class="stack-row">
+    <span class="chip">Python</span>
+    <span class="chip">FastF1</span>
+    <span class="chip">Pandas</span>
+    <span class="chip">NumPy</span>
+    <span class="chip">Matplotlib</span>
+    <span class="chip">Streamlit</span>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">Run it locally</span>
+  </div>
+  <div class="code-block"><span class="comment"># install</span>
+pip install -r requirements.txt
+
+<span class="comment"># single-lap charts</span>
+python telemetry_analysis.py
+
+<span class="comment"># full-race charts</span>
+python race_analysis.py
+
+<span class="comment"># interactive dashboard</span>
+streamlit run dashboard.py
+
+<span class="comment"># animated lap comparison</span>
+python animation.py</div>
+</section>
+
+<footer>
+  <div>f1-telemetry-analysis · MIT License</div>
+  <div>by Jay</div>
+</footer>
+
+</body>
+</html>
