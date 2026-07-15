@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 Telemetry Analysis — Jay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --carbon:#12151B;
+    --panel:#1A1F27;
+    --panel-line:#262C36;
+    --speed:#4FD8E8;
+    --throttle:#8CE071;
+    --brake:#FF5F56;
+    --text:#E9ECEF;
+    --muted:#7C8492;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--carbon);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+  a{color:inherit;}
+
+  /* ---------- layout shell ---------- */
+  .wrap{max-width:920px; margin:0 auto; padding:0 24px;}
+
+  nav{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:28px 24px; max-width:920px; margin:0 auto;
+  }
+  .brand{font-family:'JetBrains Mono', monospace; font-weight:600; letter-spacing:0.02em; font-size:15px;}
+  .brand span{color:var(--speed);}
+  .gh-link{
+    font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--muted);
+    border:1px solid var(--panel-line); padding:8px 14px; border-radius:6px;
+    text-decoration:none; transition:border-color .2s, color .2s;
+  }
+  .gh-link:hover{border-color:var(--speed); color:var(--speed);}
+
+  /* ---------- hero ---------- */
+  .hero{padding:60px 24px 20px; max-width:920px; margin:0 auto;}
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted);
+    letter-spacing:0.12em; text-transform:uppercase; margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(34px, 5.4vw, 56px);
+    font-weight:700; letter-spacing:-0.02em; line-height:1.08;
+    max-width:760px;
+  }
+  h1 em{font-style:normal; color:var(--speed);}
+  .sub{
+    color:var(--muted); font-size:17px; max-width:540px; margin-top:20px;
+  }
+
+  /* ---------- telemetry trace (signature element) ---------- */
+  .trace-panel{
+    margin-top:44px; background:var(--panel); border:1px solid var(--panel-line);
+    border-radius:10px; padding:20px 20px 14px; overflow:hidden;
+  }
+  .trace-legend{display:flex; gap:22px; margin-bottom:6px; font-family:'JetBrains Mono', monospace; font-size:12px;}
+  .trace-legend .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px;}
+  .legend-speed .dot{background:var(--speed);} 
+  .legend-throttle .dot{background:var(--throttle);}
+  .legend-brake .dot{background:var(--brake);}
+  .legend-speed{color:var(--speed);} .legend-throttle{color:var(--throttle);} .legend-brake{color:var(--brake);}
+  svg.trace{width:100%; height:150px; display:block;}
+  .trace path{
+    fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:1400; stroke-dashoffset:1400;
+    animation:draw 6s linear infinite;
+  }
+  .p-speed{stroke:var(--speed);}
+  .p-throttle{stroke:var(--throttle); animation-delay:0s;}
+  .p-brake{stroke:var(--brake); animation-delay:0s;}
+  @keyframes draw{
+    0%{stroke-dashoffset:1400;}
+    60%{stroke-dashoffset:0;}
+    100%{stroke-dashoffset:-1400;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .trace path{animation:none; stroke-dashoffset:0;}
+  }
+
+  /* ---------- sections ---------- */
+  section{padding:64px 24px; max-width:920px; margin:0 auto; border-top:1px solid var(--panel-line);}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:34px;}
+  .section-num{font-family:'JetBrains Mono', monospace; color:var(--speed); font-size:13px;}
+  .section-title{font-size:24px; font-weight:600;}
+
+  .analysis-list{display:flex; flex-direction:column; gap:0;}
+  .analysis-item{
+    display:grid; grid-template-columns:52px 1fr; gap:18px;
+    padding:20px 0; border-bottom:1px solid var(--panel-line);
+  }
+  .analysis-item:last-child{border-bottom:none;}
+  .analysis-idx{font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:20px; font-weight:500;}
+  .analysis-name{font-weight:600; font-size:16px; margin-bottom:4px;}
+  .analysis-desc{color:var(--muted); font-size:14.5px; max-width:600px;}
+
+  .stack-row{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--text);
+    background:var(--panel); border:1px solid var(--panel-line);
+    padding:7px 13px; border-radius:20px;
+  }
+
+  .code-block{
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:8px;
+    padding:18px 20px; font-family:'JetBrains Mono', monospace; font-size:13.5px;
+    color:var(--speed); white-space:pre; overflow-x:auto; margin-top:16px;
+  }
+  .code-block .comment{color:var(--muted);}
+
+  footer{
+    padding:40px 24px 60px; max-width:920px; margin:0 auto;
+    display:flex; justify-content:space-between; align-items:center;
+    color:var(--muted); font-family:'JetBrains Mono', monospace; font-size:12.5px;
+    border-top:1px solid var(--panel-line);
+  }
+
+  @media (max-width:600px){
+    .analysis-item{grid-template-columns:36px 1fr;}
+    footer{flex-direction:column; gap:10px; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">telemetry<span>.py</span></div>
+  <a class="gh-link" href="https://github.com/YOUR-USERNAME/f1-telemetry-analysis" target="_blank" rel="noopener">View on GitHub →</a>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">Data Science Project — Motorsport Telemetry</div>
+  <h1>Every corner leaves a <em>signature.</em></h1>
+  <p class="sub">A telemetry analysis pipeline built on real Formula 1 sensor data — speed, throttle, brake and gear, sampled several times a second — to find exactly where one driver beats another.</p>
+
+  <div class="trace-panel">
+    <div class="trace-legend">
+      <span class="legend-speed"><span class="dot"></span>speed</span>
+      <span class="legend-throttle"><span class="dot"></span>throttle</span>
+      <span class="legend-brake"><span class="dot"></span>brake</span>
+    </div>
+    <svg class="trace" viewBox="0 0 700 150" preserveAspectRatio="none">
+      <path class="p-speed" d="M0,90 C40,40 70,30 100,60 C140,100 160,110 200,70 C230,40 260,20 300,50 C340,90 370,110 400,80 C440,40 470,25 500,55 C540,95 570,105 600,70 C630,45 660,35 700,55"/>
+      <path class="p-throttle" d="M0,120 C40,120 60,40 100,35 C150,28 170,130 220,132 C260,133 280,45 320,38 C360,32 380,125 420,128 C460,130 480,42 520,36 C560,30 580,120 620,124 C650,126 670,50 700,40"/>
+      <path class="p-brake" d="M0,140 L90,140 L95,45 L130,45 L135,140 L280,140 L285,50 L315,50 L320,140 L470,140 L475,42 L505,42 L510,140 L700,140"/>
+    </svg>
+  </div>
+</header>
+
+<section>
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Five analyses, in order of depth</span>
+  </div>
+  <div class="analysis-list">
+    <div class="analysis-item">
+      <div class="analysis-idx">1</div>
+      <div><div class="analysis-name">Speed Trace Comparison</div><div class="analysis-desc">Two drivers' fastest laps, overlaid speed-vs-distance — see exactly where one pulls ahead.</div></div>
+    </div>
+    <div class="analysis-item">
+      <div class="analysis-idx">2</div>
+      <div><div class="analysis-name">Braking Point Detection</div><div class="analysis-desc">The exact track distance where each driver hits the brakes into every corner.</div></div>
+    </div>
+    <div class="analysis-item">
+      <div class="analysis-idx">3</div>
+      <div><div class="analysis-name">Gear &amp; Throttle Map</div><div class="analysis-desc">Gear selection and throttle percentage across the lap — racing line and corner-exit aggression.</div></div>
+    </div>
+    <div class="analysis-item">
+      <div class="analysis-idx">4</div>
+      <div><div class="analysis-name">Micro-Sector Dominance</div><div class="analysis-desc">The lap split into ~25 mini-sectors, colored by who was faster in each — the same chart F1 broadcasts show live.</div></div>
+    </div>
+    <div class="analysis-item">
+      <div class="analysis-idx">5</div>
+      <div><div class="analysis-name">Tire Degradation &amp; Strategy</div><div class="analysis-desc">Lap time vs. lap number across a race stint, revealing tire wear and strategy windows.</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">How to see it move</span>
+  </div>
+  <p class="sub" style="margin-top:0; max-width:640px;">Static charts from <code class="mono">telemetry_analysis.py</code>, an interactive browser dashboard from <code class="mono">dashboard.py</code>, or two dots physically racing around the real track shape from <code class="mono">animation.py</code>.</p>
+  <div class="code-block"><span class="comment"># interactive dashboard</span>
+streamlit run dashboard.py
+
+<span class="comment"># animated GIF of the lap</span>
+python animation.py</div>
+</section>
+
+<section>
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">Built with</span>
+  </div>
+  <div class="stack-row">
+    <span class="chip">Python</span>
+    <span class="chip">FastF1</span>
+    <span class="chip">Pandas</span>
+    <span class="chip">NumPy</span>
+    <span class="chip">Matplotlib</span>
+    <span class="chip">Streamlit</span>
+  </div>
+</section>
+
+<footer>
+  <div>f1-telemetry-analysis · MIT License</div>
+  <div>by Jay</div>
+</footer>
+
+</body>
+</html>
