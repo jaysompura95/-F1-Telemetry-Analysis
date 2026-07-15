@@ -1,0 +1,18 @@
+# FastF1 cache (large, regenerable — don't commit)
+cache/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Generated output (regenerate locally, or remove this line to commit your favorites)
+*.png
+*.gif
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
